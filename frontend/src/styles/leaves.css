@@ -1,0 +1,75 @@
+/* table td,
+table th {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+thead th,
+tbody th {
+  color: #fff;
+}
+
+tbody td {
+  font-weight: 500;
+  color: rgba(255,255,255,.65);
+}
+
+.cards {
+  border-radius: .5rem;
+}
+
+
+
+ */
+
+
+
+ /* leaveApplications.css */
+
+/* leaveApplications.css */
+
+.leave-applications-container {
+  position: absolute;
+  top: 100px;
+  right: 9px;
+  background: linear-gradient(to right, #c64aad, #9ce5f2);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.leave-container {
+  position: absolute;
+  top: 170px;
+  right: 9px;
+  background: linear-gradient(to right, #4ac6ad, #be9cf2);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+
+.leave-applications-title {
+  margin-left: 23%;
+  width: 50%;
+}
+
+.leave-applications-table {
+  padding: 2px;
+  border-collapse: collapse;
+  width: 57%; /* Maintaining the width as 50% */
+  margin-left: 21%; /* Maintaining the position */
+}
+
+.leave-applications-table th, .leave-applications-table td {
+  border: 2px solid #7312b4;
+  padding: 8px;
+}
+
+.leave-applications-details {
+  margin-left: 80%;
+}
+
+.leave-counts-card {
+  width: 18rem;
+  margin-left: 80%;
+}

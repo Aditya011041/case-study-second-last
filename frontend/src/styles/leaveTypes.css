@@ -1,0 +1,61 @@
+/* LeaveTypeManagement.css */
+
+.leave-form {
+    margin-bottom: 20px;
+  }
+  
+  .leave-form form {
+    background-color: #f58e8e;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .leave-form h2.form-title {
+    margin-bottom: 20px;
+  }
+  
+  .leave-form .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .leave-form label {
+    font-weight: bold;
+  }
+  
+  .leave-form input[type='text'],
+  .leave-form input[type='number'] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  .leave-form button[type='submit'] {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .leave-types {
+    margin-top: 20px;
+  }
+  
+  .leave-types-title {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .leave-types-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .leave-type-item {
+    margin-bottom: 10px;
+  }
+  

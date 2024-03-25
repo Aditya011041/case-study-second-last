@@ -1,0 +1,39 @@
+.project-details-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  
+  .project-card {
+    margin: 0 2rem;
+  }
+  
+  .list-group-wrapper {
+    width: 28rem;
+    margin-top: 30px;
+  }
+  
+  .custom-list-group {
+    border: none;
+  }
+  
+  .custom-list-item {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 2%;
+  }
+  
+  .custom-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: red; /* Example color */
+  }
+  
+  .custom-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: green; /* Example color */
+  }
+  
