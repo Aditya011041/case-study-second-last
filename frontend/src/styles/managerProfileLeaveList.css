@@ -1,0 +1,44 @@
+/* LeaveApplicationList.css */
+
+.leave-application-table {
+    margin-left: 10%;
+    width: 60%;
+  }
+  
+  .leave-application-table th {
+    border-left: 4px solid #7312b4;
+    border-right: 4px solid #7312b4;
+    border-bottom: 4px solid #7312b4;
+    padding: 8px;
+  }
+  
+  .leave-application-table td {
+    border-left: 2px solid #7312b4;
+    border-right: 2px solid #7312b4;
+    border-bottom: 2px solid #7312b4;
+    padding: 8px;
+  }
+  
+  .leave-application-actions {
+    overflow: visible;
+  }
+  
+  .leave-application-status {
+    border-right: 2px solid #7312b4;
+    border-bottom: 2px solid #7312b4;
+    padding: 8px;
+  }
+  
+  .leave-application-modal {
+    margin-left: 25%;
+    width: 52%;
+  }
+  
+  .leave-application-modal-title {
+    text-align: center;
+  }
+  
+  .leave-application-modal-body {
+    text-align: left;
+  }
+  

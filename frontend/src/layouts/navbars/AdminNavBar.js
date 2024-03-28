@@ -17,7 +17,7 @@ const CustomNavbar = () => {
         <img src="https://www.beehyv.com/wp-content/uploads/2020/10/logo.svg" alt="Logo" className="img-fluid ms-1" style={{ height: '50px' }} />
       </Navbar.Brand>
       <Nav className="ml-auto">
-        <Nav.Link href="/detail">Home</Nav.Link>
+        <Nav.Link href="/admin">Home</Nav.Link>
       </Nav>
       <Navbar.Brand style={{ marginLeft: '280px' }}>
         <h1>Admin Panel</h1>

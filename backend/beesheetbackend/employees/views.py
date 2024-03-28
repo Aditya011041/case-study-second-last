@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from rest_framework.pagination import PageNumberPagination
 from django.core.paginator import Paginator
 from django.contrib.auth.hashers import make_password
+from django.shortcuts import get_object_or_404
 
 class EmployeeId(APIView):
     def get(self, request):
@@ -35,6 +36,16 @@ class EmployeeId(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def patch(self, request, pk):
+        try:
+            employee = Employee.objects.get(pk=pk)
+            serializer = EmployeeSerializer(employee, data=request.data , partial = True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Employee.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 class EmpList(APIView):
     def get(self, request, pk, format=None):

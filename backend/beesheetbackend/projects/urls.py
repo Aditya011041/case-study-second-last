@@ -5,4 +5,5 @@ from projects import views
 urlpatterns = [
     path('projects/', views.ProjectCreateView.as_view()),
     path('projects/<int:pk>/', views.EmpProject.as_view()),
+    path('all-project/' , views.AllProject.as_view()),
 ]

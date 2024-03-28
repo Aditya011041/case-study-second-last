@@ -35,7 +35,7 @@ export default function LeaveTypeModal({ showModal, onClose }) {
     };
 
     return (
-        <div className={`modal ${showModal ? 'show' : ''}`} tabIndex="-1" role="dialog" style={{ display: showModal ? 'block' : 'none' , position:'absolute' , top:'20%' , left:'30%'}}>
+        <div className={`modal ${showModal ? 'show' : ''}`} tabIndex="-1" role="dialog" style={{ display: showModal ? 'block' : 'none'  , top:'20%' , left:'8%'}}>
             <div className="modal-dialog" role="document">
                 <div className="modal-content">
                     <div className="modal-header">

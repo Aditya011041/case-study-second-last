@@ -3,7 +3,7 @@ from employees.serializers import EmployeeSerializer
 from employees.models import Employee
 from projectmanager.models import ProjManager
 from leave_management.serializers import LeaveApplicationSerializer, LeaveSummarySerializer , LeaveTypeSerializer, ManagerLeaveApplicationSerializer
-from leave_management.models import LeaveApplication, LeaveSummary , LeaveType, ManagerLeaveApplication
+from leave_management.models import LeaveApplication, LeaveSummary , LeaveType, ManagerLeaveAction, ManagerLeaveApplication
 from rest_framework.response import Response
 from django.http import Http404
 from django.contrib.auth.models import User
@@ -13,7 +13,7 @@ from django.db.models import F
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser
 from django.shortcuts import get_object_or_404
-import datetime
+from datetime import datetime, timedelta , date
 
 
 # Create your views here. 
@@ -26,10 +26,35 @@ class LeaveApplicationAll(APIView):
 from django.db.models import Q
 #leave application api methods here for mananger's ui
 class LeaveApplicationList(APIView):
-    def get(self, request,pk, format=None):
-        leave_applications = LeaveApplication.objects.get(pk=pk)
-        serializer = LeaveApplicationSerializer(leave_applications, many=True)
-        return Response(serializer.data)
+    def get(self, request, pk, format=None):
+        leave_application = LeaveApplication.objects.get(pk=pk)
+        serializer = LeaveApplicationSerializer(leave_application)
+
+        # Response data
+        response_data = serializer.data
+
+        # Include manager names, IDs, decisions/actions, and statuses
+        manager_decisions = {}
+        
+        if leave_application.manager_statuses:
+            for manager_id, action in leave_application.manager_statuses.items():
+                try:
+                    manager = ProjManager.objects.get(pk=int(manager_id))
+                    manager_decisions[manager.manager_name] = {
+                        'id': manager.id,
+                        'action': action,
+                        'status': 'APPROVED' if action.upper() == 'APPROVE' else 'REJECTED' if action.upper() == 'REJECT' else 'PENDING'
+                    }
+                except ProjManager.DoesNotExist:
+                    manager_decisions['Unknown Manager'] = {
+                        'id': manager_id,
+                        'action': action,
+                        'status': 'APPROVED' if action.upper() == 'APPROVE' else 'REJECTED' if action.upper() == 'REJECT' else 'PENDING'
+                    }
+
+        response_data['manager_decisions'] = manager_decisions
+
+        return Response(response_data)
     
     def post(self, request, pk):
         employee_instance = Employee.objects.get(pk=pk)
@@ -62,39 +87,55 @@ class LeaveApplicationList(APIView):
         leave_application.delete()
         return Response(status=204)
 
+    
     def patch(self, request, managerId, leave_app_id):
-        leave_application = LeaveApplication.objects.get(pk=leave_app_id)
-        manager = ProjManager.objects.get(pk=managerId)
-        action = request.data.get('action')
-        
-        if leave_application.end_date < datetime.date.today():
-            return Response({'error': 'End date of leave application has passed. Status cannot be changed.'}, status=400)
-        
-        if leave_application.status == 'REJECTED':
-            return Response({'error': 'Leave application has been rejected. Further changes denied.'}, status=400)
-        
-        if leave_application.superuser_changed_status:
-            return Response({'error': 'Status changed by admin. Further changes denied.', 'superuser_changed_status': True}, status=404)
-        
-        if action in ['approve', 'reject', 'pending']:
-            leave_application.status = None
+        try:
+            leave_application = LeaveApplication.objects.get(pk=leave_app_id)
+            manager = ProjManager.objects.get(pk=managerId)
+            action = request.data.get('action')
+            is_ui_decision = request.data.get('is_ui_decision', False)
+            is_superuser = request.user.is_superuser
 
-        if action == 'approve':
-            leave_application.managers.add(manager)
-            leave_application.status = 'APPROVED'
-        elif action == 'reject':
-            leave_application.status = 'REJECTED'
-        elif action == 'pending':
-            leave_application.status = 'PENDING'
+            if leave_application.end_date < date.today():
+                return Response({'error': 'End date of leave application has passed. Status cannot be changed.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        leave_application.save()
+            if action == 'reject':
+                leave_application.status = 'REJECTED'
+            elif action == 'pending':
+                leave_application.status = 'PENDING'
+            elif action == 'approve':
+                # Add manager to the list of managers who approved
+                leave_application.managers.add(manager)
+                leave_application.status = 'APPROVED'
 
-        serializer = LeaveApplicationSerializer(leave_application)
-        manager_decision = {
-            'manager_id': manager.id,
-            'decision': action  # This could be 'approve', 'reject', or 'pending'
-        }
-        return Response({'leave_application': serializer.data, 'manager_decision': manager_decision})
+            # Update manager-specific status
+            if leave_application.manager_statuses is None:
+                leave_application.manager_statuses = {}
+            leave_application.manager_statuses[str(manager.id)] = action.upper()
+
+            # Update employee view status if any manager has approved
+            if any(manager_status == 'APPROVE' for manager_status in leave_application.manager_statuses.values()):
+                leave_application.employee_view_status = 'Approved'
+
+            # Save the leave application
+            leave_application.save()
+
+            # Create ManagerLeaveAction instance for the current manager's action
+            ManagerLeaveAction.objects.create(manager=manager, leave_application=leave_application, action=action.upper())
+
+            # Serialize the leave application
+            serializer = LeaveApplicationSerializer(leave_application)
+
+            # Response data to be sent to UI
+            response_data = {'leave_application': serializer.data}
+            if is_ui_decision:
+                return Response(response_data)
+
+            return Response(response_data)
+
+        except LeaveApplication.DoesNotExist:
+            raise Http404("Leave application not found")
+        
 
 
 class SuperuserStatusChangeView(APIView):
@@ -102,32 +143,33 @@ class SuperuserStatusChangeView(APIView):
         leave_application = LeaveApplication.objects.get(pk=leave_app_id)
         action = request.data.get('action')
         
+        # Check if the end date of the leave application has passed
         if leave_application.end_date < datetime.date.today():
-            return Response({'error': 'End date of leave application has passed. Status cannot be changed.'}, status=400)
+            return Response({'error': 'End date of leave application has passed. Status cannot be changed.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if action in ['approve', 'reject', 'pending']:
-            leave_application.status = None
+        # Reset the status to None before updating
+        leave_application.status = None
 
+        # Apply the action requested by the superuser
         if action == 'approve':
             leave_application.status = 'APPROVED'
         elif action == 'reject':
             leave_application.status = 'REJECTED'            
         elif action == 'pending':
             leave_application.status = 'PENDING'
-            
-        if leave_application.superuser_changed_status:
-            return Response({'message': 'Status already changed by admin. Further changes denied.'})
         
+        # Allow superuser to override their previous decision
         leave_application.superuser_changed_status = True
 
+        # Save the updated leave application
         leave_application.save()
 
+        # Serialize and return the updated leave application
         serializer = LeaveApplicationSerializer(leave_application)
         return Response(serializer.data)
-
 #cancel leave and delete application and summary
 class CancelLeaveApplication(APIView):
-    def delete(self, request, empId, leave_app_id):
+    def patch(self, request, empId, leave_app_id):
         try:
             leave_application = LeaveApplication.objects.get(pk=leave_app_id)
             
@@ -137,23 +179,21 @@ class CancelLeaveApplication(APIView):
             if leave_application.status == 'REJECTED':
                 return Response({"error": "Leave application cannot be canceled as it has already been approved."})
             
-            
             # Check if the employee ID matches the leave application's employee ID
             if leave_application.employee_id != empId:
                 return Response({"error": "Unauthorized"})
             
-            leave_summary = LeaveSummary.objects.filter(employee=leave_application.employee).first()
-
-            if leave_summary:
-                leave_summary.delete()
-
-            leave_application.delete()
+            # Update the status to 'CANCELLED'
+            leave_application.status = 'CANCELLED'
+            leave_application.save()
             
-            update_leave_report(None, leave_application, None)
-
-            return Response({'message': 'Leave application removed successfully'})
+            # Optionally, you can keep the leave application in the database
+            # and mark it as cancelled, or delete it if you prefer.
+            
+            return Response({'message': 'Leave application cancelled successfully', 'status': leave_application.status})
         except LeaveApplication.DoesNotExist:
             raise Http404("Leave application not found")
+
 
 
   
@@ -167,11 +207,6 @@ class LeaveSummaryDetail(APIView):
     
 #api for types of leaves for leaveapplication form   
 class LeaveTypeDetail(APIView):
-    
-    # def get_permissions(self):
-    #     if self.request.method in ['POST', 'PATCH']:
-    #         self.permission_classes = [IsAdminUser]
-    #     return super().get_permissions()
     def get(self, request):
         leave_types = LeaveType.objects.all()
         serializer = LeaveTypeSerializer(leave_types, many=True)
@@ -198,7 +233,11 @@ class LeaveTypeDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors)
 
-        
+def calculate_leave_days(start_date, end_date):
+    total_days = (end_date - start_date).days + 1
+    # Exclude Saturdays and Sundays
+    leave_days = sum(1 for day in range(total_days) if (datetime(start_date.year, start_date.month, start_date.day) + timedelta(days=day)).weekday() < 5)
+    return leave_days        
 
 
 
@@ -208,7 +247,7 @@ def create_leave_report(sender, instance, created, **kwargs):
         employee = instance.employee
         leave_type_id = instance.leave_type_id 
         total_allocated_days = instance.leave_type.days_allocated
-        total_used_days = calculate_leave_days(instance.start_date, instance.end_date)
+        total_used_days = instance.calculate_leave_days(instance.start_date, instance.end_date)
         total_available_days = total_allocated_days - total_used_days
         leave_report = LeaveSummary.objects.create(
             total_available=total_available_days,
@@ -219,33 +258,33 @@ def create_leave_report(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=LeaveApplication)
 def update_leave_report(sender, instance, created, **kwargs):
-    if instance.status == 'REJECTED':
+    if instance.status == 'APPROVED':
         employee = instance.employee
         leave_type_id = instance.leave_type_id 
         total_allocated_days = instance.leave_type.days_allocated
+        total_used_days = calculate_leave_days(instance.start_date, instance.end_date)
         
+        # Check if the leave application was previously rejected
+        previously_rejected = instance.employee_view_status == 'REJECTED'
+        
+        # Fetch the existing leave report for the employee and leave type
         leave_report_qs = LeaveSummary.objects.filter(employee=employee, leave_type_id=leave_type_id)
         if leave_report_qs.exists():
             leave_report = leave_report_qs.first()
-            total_used = calculate_leave_days(instance.start_date, instance.end_date)
-            total_available_days = leave_report.total_available + total_used
-            total_used_days = 0
-            leave_report.total_available = total_available_days
-            leave_report.total_used = total_used_days
+            if not previously_rejected:
+                # Update total used days and total available days
+                leave_report.total_used += total_used_days
+                leave_report.total_available -= total_used_days
             leave_report.save()
         else:
-            leave_report = LeaveSummary.objects.create(
-                total_available=total_allocated_days,
-                total_used=0,
-                leave_type_id=leave_type_id
+            # Create a new leave report if it doesn't exist
+            LeaveSummary.objects.create(
+                total_available=total_allocated_days - total_used_days if not previously_rejected else total_allocated_days,
+                total_used=total_used_days,
+                leave_type_id=leave_type_id,
+                employee=employee
             )
-            leave_report.employee.set([employee])
 
-def calculate_leave_days(start_date, end_date):
-    total_days = (end_date - start_date).days + 1
-    # Exclude Saturdays and Sundays
-    leave_days = sum(1 for day in range(total_days) if (start_date + datetime.timedelta(days=day)).weekday() < 5)
-    return leave_days
 
 
 
@@ -296,9 +335,8 @@ class LeaveSummaryData(APIView):
     def calculate_leave_days(self, start_date, end_date):
         total_days = (end_date - start_date).days + 1
         # Exclude Saturdays and Sundays
-        leave_days = sum(1 for day in range(total_days) if (start_date + datetime.timedelta(days=day)).weekday() < 5)
+        leave_days = sum(1 for day in range(total_days) if (datetime(start_date.year, start_date.month, start_date.day) + timedelta(days=day)).weekday() < 5)
         return leave_days
-
 
 #to fetch leave application in manager's ui 
 class ManagerLeaveApplicationList(APIView):

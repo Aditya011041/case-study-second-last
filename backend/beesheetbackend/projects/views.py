@@ -45,3 +45,13 @@ class EmpProject(APIView):
             return Response(serializer.data)
         except Project.DoesNotExist:
             return Response({"error": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class AllProject(APIView):
+    def get(self, request, format=None):
+        try:
+            projects = Project.objects.all()
+            serializer = ProjectSerializer(projects, many=True)
+            return Response(serializer.data)
+        except Project.DoesNotExist:
+            return Response({"error": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)

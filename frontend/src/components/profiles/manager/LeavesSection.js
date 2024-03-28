@@ -5,19 +5,31 @@ import { useNavigate } from 'react-router-dom';
 import ManagerLeaveApplicationForm from '../../../layouts/forms/ManagerLeaveApplicationForm';
 import axios from 'axios';
 import ManagerLeaveTable from './ManagerLeaveTable';
+import '../../../styles/managerLeaveBtn.css';
 
-const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleCloseNotify, manager_Id}) => {
-  
+const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleCloseNotify, manager_Id }) => {
+
   const [showForm, setShowForm] = useState(false);
   const [showManagerTable, setShowManagerTable] = useState(false);
+  const [showLeaveApplicationList, setShowLeaveApplicationList] = useState(false);
   const [leaveApplications, setLeaveApplications] = useState([]);
 
   const handleFormToggle = () => {
     setShowForm(!showForm);
+    if (showManagerTable) setShowManagerTable(false);
+    if (showLeaveApplicationList) setShowLeaveApplicationList(false);
   };
 
   const handleManagerTableToggle = () => {
     setShowManagerTable(!showManagerTable);
+    if (showForm) setShowForm(false);
+    if (showLeaveApplicationList) setShowLeaveApplicationList(false);
+  };
+
+  const handleLeaveApplicationListToggle = () => {
+    setShowLeaveApplicationList(!showLeaveApplicationList);
+    if (showForm) setShowForm(false);
+    if (showManagerTable) setShowManagerTable(false);
   };
 
   useEffect(() => {
@@ -35,6 +47,7 @@ const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleClos
 
   return (
     <>
+      {/* Notifications Dropdown */}
       <div className="dropdown" style={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
         <span className='text-primary fw-bold fs-2 p-2' style={{ marginLeft: '80%' }}>Notifications</span>
         <div
@@ -65,14 +78,35 @@ const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleClos
           )}
         </ul>
       </div>
-      <div className="leave-application-list ">
-        <LeaveApplicationList managerId={manager_Id} />
+
+      {/* Button to Toggle Leave Application List */}
+      <div className="toggle-leave-application-list click3">
+        <a onClick={handleLeaveApplicationListToggle}>{showLeaveApplicationList ? 'Hide' : 'Employee Leaves'}</a>
       </div>
+
+      {/* Leave Application List */}
+      {showLeaveApplicationList && (
+        <div className="leave-application-list">
+          <LeaveApplicationList managerId={manager_Id} />
+        </div>
+      )}
+
+      {/* Manager Leave Application Form */}
       <div className="manager-leave-application-form">
-        <button onClick={handleFormToggle}>Toggle Leave Application Form</button>
+        <div ontouchstart="">
+          <div className="click">
+            <a onClick={handleFormToggle}>{showForm ? 'Hide' : 'Apply For Leave'}</a>
+          </div>
+        </div>
         {showForm && <ManagerLeaveApplicationForm managerId={manager_Id} />}
       </div>
-      <button onClick={handleManagerTableToggle}>{showManagerTable ? 'Close Manager Table' : 'Show Manager Table'}</button>
+
+      {/* Button to Toggle Manager Leave Table */}
+      <div className='click2'>
+        <a onClick={handleManagerTableToggle}>{showManagerTable ? 'Close My Leaves' : 'Show My Leaves'}</a>
+      </div>
+
+      {/* Manager Leave Table */}
       {showManagerTable && <ManagerLeaveTable leaveApplications={leaveApplications} />}
     </>
   );

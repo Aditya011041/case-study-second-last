@@ -1,0 +1,35 @@
+.leave-application-form-container {
+    margin-top: 0.5rem;
+}
+
+.leave-application-form-wrapper {
+    background: linear-gradient(to right, #6f42c1, #20c997);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 10px rgb(193, 193, 193);
+    max-width: 500px;
+    margin: auto;
+    top: 0;
+}
+
+.leave-application-form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.leave-application-form-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.leave-application-form-button {
+    background: #6f42c1;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+}

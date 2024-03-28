@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import ('bootstrap');
+import '../../../styles/managerProfileLeaveList.css';
+import { Dropdown, DropdownButton } from 'react-bootstrap';
 
 const LeaveApplicationList = ({ managerId }) => {
   const [leaveApplications, setLeaveApplications] = useState([]);
@@ -28,85 +29,147 @@ const LeaveApplicationList = ({ managerId }) => {
   const handleManagerAction = async (action, leaveAppId) => {
     try {
       const res = await axios.patch(`http://127.0.0.1:8000/leaveapplicationlist/manager/${managerId}/${leaveAppId}/`, {
-        action: action,
+      action: action,
+      is_ui_decision: true,
+    });
+    console.log(res.data);
+
+    const updatedLeaveApplication = res.data.leave_application;
+    const managerName = res.data.manager_name;
+
+    setLeaveApplications(prevLeaveApplications => {
+      return prevLeaveApplications.map(leaveApp => {
+        if (leaveApp.id === updatedLeaveApplication.id) {
+          return {
+            ...leaveApp,
+            ...updatedLeaveApplication,
+            manager_decision: managerDecision,
+            manager_name: managerName,
+          };
+        }
+        return leaveApp;
       });
-      console.log(res);
-      
+    });
+
       const managerDecision = res.data.manager_decision;
 
       console.log('Manager decision:', managerDecision);
-  
-      // Now you can access properties of managerDecision object
+
       if (managerDecision && managerDecision.manager_id && managerDecision.decision) {
         console.log('Manager ID:', managerDecision.manager_id);
         console.log('Decision:', managerDecision.decision);
       } else {
         console.error('Invalid manager decision:', managerDecision);
       }
-      
-      setLeaveApplications(prevLeaveApplications => {
-        const updatedLeaveApplications = prevLeaveApplications.map(leaveApp => {
-          if (leaveApp.id === leaveAppId) {
-            return res.data;
-          }
-          return leaveApp;
-        });
-        return updatedLeaveApplications;
-      });
+
+      if (updatedLeaveApplication.status === 'REJECTED') {
+        alert('Leave application already rejected by another manager. Further changes denied.');
+      }
+      // if (action === 'reject' || action === 'approve' || action === 'leave_pending') {
+      //   alert('Leave application already rejected by another manager. Further changes denied.');
+      // }
     } catch (error) {
+      console.log(error)
       if (error.response.status === 404 && error.response.data.superuser_changed_status) {
         alert('Status changed by admin. Further changes denied.');
+      } else if (error.response.status === 400 && error.response.data.error === 'Leave application already rejected. Further changes denied.') {
+        alert('Leave application already rejected by another manager. Further changes denied.');
       } else {
         alert(error.response.data.error);
       }
     }
   };
 
+  
+  const getStatusLabel = (leaveApp) => {
+
+    if (leaveApp.status === 'REJECTED') {
+      return 'Rejected';
+    } else if (leaveApp.manager_statuses && leaveApp.manager_statuses.length > 0) {
+      // Find the decision made by the current manager
+      const managerDecision = leaveApp.manager_statuses.find(decision => decision.id === managerId); 
+      if (managerDecision) {
+        return managerDecision.action;
+      }
+    } else if (leaveApp.employee_view_status) {
+      return leaveApp.employee_view_status;
+    }
+    return 'Pending'; // Default status if no decision is found
+  };
+  
+  
+  
+
   return (
     <div>
-      <div className='p-3' style={{ marginLeft: '25%', width: "52%" }}>
-        <table className="table align-middle mb-0" style={{ padding: '2px', borderCollapse: 'collapse', width: '100%' }}>
-          <thead className="bg-light" style={{ borderTop: '4px solid #7312b4', padding: '8px' }}>
+      <div className='leave-application-table'>
+        <table className="table align-middle mb-0">
+          <thead className="bg-light">
             <tr>
-              <th style={{ borderLeft: '4px solid #7312b4', borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>Name</th>
-              <th style={{ borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>Start Date</th>
-              <th style={{ borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>End Date</th>
-              <th style={{ borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>Leave Type</th>
-              <th style={{ borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>Action</th>
-              <th style={{ borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>Status</th>
-              <th style={{ borderRight: '4px solid #7312b4', borderBottom: '4px solid #7312b4', padding: '8px' }}>View Details</th>
+              <th>Name</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Leave Type</th>
+              <th>Action</th>
+              <th>Status</th>
+              <th>View Details</th>
             </tr>
           </thead>
           <tbody>
             {leaveApplications.map((leaveApp) => (
               <tr key={leaveApp.id}>
-                <td style={{ borderLeft: '2px solid #7312b4', borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveApp.employee_name}</td>
-                <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveApp.start_date}</td>
-                <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveApp.end_date}</td>
-                <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveApp.leave_type_name}</td>
-                <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>
-                  <div className="dropdown">
-                    <button className="btn btn-secondary dropdown-toggle" type="button" id={`dropdownMenuButton${leaveApp.id}`} data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true" defaultValue>
-                      Actions
-                    </button>
-                    <ul className="dropdown-menu dropdown-menu-right " aria-labelledby={`dropdownMenuButton${leaveApp.id}`} style={{overflow:'visible'}}>
-                      <li><button className="dropdown-item" onClick={() => handleManagerAction('approve', leaveApp.id)}>Approve</button></li>
-                      <li><button className="dropdown-item" onClick={() => handleManagerAction('reject', leaveApp.id)}>Reject</button></li>
-                      <li><button className="dropdown-item" onClick={() => handleManagerAction('pending', leaveApp.id)}>Leave Pending</button></li>
-                    </ul>
+                <td>{leaveApp.employee_name}</td>
+                <td>{leaveApp.start_date}</td>
+                <td>{leaveApp.end_date}</td>
+                <td>{leaveApp.leave_type_name}</td>
+                <td>
+                  <div className="dropdown leave-application-actions">
+                    <DropdownButton
+                      id={`dropdownMenuButton${leaveApp.id}`}
+                      title="Actions"
+                      variant="secondary"
+                      disabled={
+                        leaveApp.final_rejection_manager !== null &&
+                        leaveApp.final_rejection_manager !== managerId &&
+                        leaveApp.manager_statuses[managerId] === 'REJECTED'
+                      }
+                    >
+                      <Dropdown.Item
+                        onClick={() => handleManagerAction('approve', leaveApp.id)}
+                        disabled={
+                          leaveApp.status === 'REJECTED' ||
+                          (leaveApp.status === 'PENDING' && leaveApp.final_rejection_manager !== null && leaveApp.final_rejection_manager !== managerId)
+                        }
+                      >
+                        Approve
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => handleManagerAction('reject', leaveApp.id)}
+                        disabled={leaveApp.status === 'REJECTED'}
+                      >
+                        Reject
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => handleManagerAction('pending', leaveApp.id)}
+                        disabled={leaveApp.status === 'REJECTED'}
+                      >
+                        Leave Pending
+                      </Dropdown.Item>
+                    </DropdownButton>
+
                   </div>
                 </td>
-                <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>
-                  
+                <td className="leave-application-status">
                   {leaveApp.superuser_changed_status ? (
-                    <span> Admin Decided</span>
-                  ) : (<>
-                   <span>{leaveApp.status} </span> 
-                   </>
-                  ) }
+                    <span>Admin Decided</span>
+                  ) : (
+                    <span>{getStatusLabel(leaveApp)}</span>
+                  )}
                 </td>
-                <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>
-                  <button className='bg-info' onClick={() => handleViewDetails(leaveApp)}>View Details</button>
+                <td>
+                  <button className='bg-secondary px-2 fw-bold text-warning' style={{ borderRadius: '10px' }} onClick={() => handleViewDetails(leaveApp)}>
+                    View Details
+                  </button>
                 </td>
               </tr>
             ))}
@@ -119,10 +182,12 @@ const LeaveApplicationList = ({ managerId }) => {
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="employeeDetailsModalLabel">Employee Details</h5>
+              <h5 className="modal-title leave-application-modal-title" id="employeeDetailsModalLabel">
+                Employee Details
+              </h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div className="modal-body">
+            <div className="modal-body leave-application-modal-body">
               <p>Name: {selectedLeaveApplication?.employee_name}</p>
               <p>Email: {selectedLeaveApplication?.employee_email}</p>
             </div>

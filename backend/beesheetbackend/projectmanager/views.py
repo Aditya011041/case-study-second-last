@@ -116,3 +116,27 @@ class OneManagerView(APIView):
         }
         
         return Response(response_data)
+
+
+class ManagerEmployees(APIView):
+    def get(self, request, pk, format=None):
+        try:
+            manager = ProjManager.objects.get(pk=pk)
+        except ProjManager.DoesNotExist:
+            return Response({"error": "Manager does not exist"})
+
+        employees = Employee.objects.filter(project__managers=manager)
+        paginator = PageNumberPagination()
+        employees_page = paginator.paginate_queryset(employees, request)
+        employees_serializer = EmployeeSerializer(employees_page, many=True)
+
+        response_data = {
+            'employees': employees_serializer.data,
+            'pagination': {
+                'total_pages': paginator.page.paginator.num_pages,
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link(),
+            }
+        }
+        
+        return Response(response_data)

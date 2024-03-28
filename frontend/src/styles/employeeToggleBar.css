@@ -1,0 +1,22 @@
+/* Animation for toggle bar */
+.toggle-bar {
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .toggle-bar.active {
+    background-color: #007bff;
+    color: #fff;
+  }
+  
+  /* Animation for dropdown */
+  .dropdown-menu {
+    transition: opacity 0.3s ease;
+  }
+  
+  .dropdown-menu.show {
+    opacity: 1;
+  }
+  

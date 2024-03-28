@@ -45,6 +45,7 @@ function EmpDetail() {
         const response = await axios.get(`http://127.0.0.1:8000/emp-leave-details/${emp_id}`);
         
         setEmpApplication(response.data);
+        console.log('setEmpApplication:' , response.data)
       } catch (error) {
         console.error('Error fetching employee leave applications:', error);
       }
@@ -124,7 +125,7 @@ function EmpDetail() {
 
   const handleAction = async (appId) => {
     try {
-      const res = await axios.delete(`http://127.0.0.1:8000/cancel-leave-application/employee/${emp_id}/${appId}/`);
+      const res = await axios.patch(`http://127.0.0.1:8000/cancel-leave-application/employee/${emp_id}/${appId}/`);
       alert(res.data.message);
       window.location.reload();
     } catch (error) {
@@ -171,3 +172,5 @@ function EmpDetail() {
 }
 
 export default EmpDetail;
+
+

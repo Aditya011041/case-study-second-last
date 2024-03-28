@@ -72,19 +72,19 @@ export default function ProjectsForm() {
         try {
             console.log(formData);
             const response = await axios.post('http://127.0.0.1:8000/projects/', formData);
-            navigate('/');
+            navigate('/admin')
         } catch (error) {
             console.error('Error creating project:', error);
         }
     };
 
     return (
-        <section className="vh-100 d-flex justify-content-center align-items-center" style={{ backgroundImage: `url(${backgroundImage})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
+        <section className="vh-150 d-flex justify-content-center align-items-center" style={{ backgroundImage: `url(${backgroundImage})`, backgroundPosition: 'center', backgroundSize: 'cover' }}>
             <div className="container">
                 <div className="row justify-content-center">
                     <div className="col-md-6">
-                        <div className="card shadow-lg p-4 p-md-5 rounded-3" style={{ background: 'linear-gradient(to right, #6f42c1, #20c997)' }}>
-                            <h3 className="mb-4 pb-2 pb-md-0 mb-md-5 text-center text-white">Create Project</h3>
+                        <div className="card shadow-lg p-4  rounded-3" style={{ background: 'linear-gradient(to right, #6f42c1, #20c997)' }}>
+                            <h3 className="mb-4   mb-md-5 text-center text-white">Create Project</h3>
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
                                     <label htmlFor="title" className="form-label fw-bold text-white">Title</label>
