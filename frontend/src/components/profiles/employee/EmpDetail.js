@@ -68,32 +68,7 @@ function EmpDetail() {
     fetchLeaveCounts();
   }, [emp_id])
 
-  const renderTotalLeaveCounts = () => {
-    return (
-      <div className="card" style={{ width: '18rem', marginLeft: '80%' }}>
-        <div className="card-body">
-          <h5 className="card-title">Leave Type: {leaveCounts.leave_types.name}</h5>
-          <p className="card-text">Total Available: {leaveCounts.total_available}</p>
-          <p className="card-text">Total Used: {leaveCounts.total_used}</p>
-        </div>
-      </div>
-    );
-  };
-
-  // Render leave summaries if available
-  const renderLeaveSummaries = () => {
-    return leaveCounts.leave_summaries.map(leaveSummary => (
-      <div key={leaveSummary.id} className="card" style={{ width: '18rem', marginLeft: '80%' }}>
-        <div className="card-body">
-          <h5 className="card-title">Leave Type: {leaveSummary.leave_type.name}</h5>
-          <p className="card-text">Total Available: {leaveSummary.total_available}</p>
-          <p className="card-text">Total Used: {leaveSummary.total_used}</p>
-        </div>
-      </div>
-    ));
-  };
-
-
+ 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('isLoggedIn');
     if (emp && !toastShown && isLoggedIn) {
@@ -154,6 +129,7 @@ function EmpDetail() {
                 {selectedMenuItem === 'leaves' && (
                   <LeaveApplications
                     emp={emp}
+                    id = {emp_id}
                     empApplication={empApplication}
                     leaveCounts={leaveCounts}
                     leaveApply={leaveApply}

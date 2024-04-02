@@ -25,11 +25,16 @@ const EmployeeLeaveApplicationDetail = ({ empApplication, handleCancel, handleVi
                 <td>{app.start_date}</td>
                 <td>{app.end_date}</td>
                 <td>
-                  {app.status === 'CANCELLED' ? app.status : (app.superuser_changed_status ? app.status : app.employee_view_status)}
-                </td>
-                <td className='bg-info'>
+  {app.superuser_changed_status ? app.status : (
+    app.manager_statuses.some(managerStatus => managerStatus.action === 'APPROVE') ? 'Approved' :
+    (app.status === 'CANCELLED' ? app.status : app.status)
+  )}
+</td>
+
+
+                <td className='bg-primary'>
                   <button
-                    className='bg-info fw-bold'
+                    className='bg-primary text-white fw-bold'
                     style={{ border: 'none', color: 'red' }}
                     onClick={() => handleCancel(app.id, app.status)}
                     disabled={app.status === 'CANCELLED'} // Disable cancel button if status is 'CANCELLED'
@@ -38,7 +43,7 @@ const EmployeeLeaveApplicationDetail = ({ empApplication, handleCancel, handleVi
                   </button>
                 </td>
                 <td>
-                  <button className='p-1 bg-success' onClick={() => handleViewDetails(app)}>
+                  <button className='px-2 py-1 bg-secondary text-warning fw-bold' style={{borderRadius:'10px'}} onClick={() => handleViewDetails(app)}>
                     View
                   </button>
                 </td>

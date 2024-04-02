@@ -15,8 +15,14 @@ from rest_framework.pagination import PageNumberPagination
 from django.core.paginator import Paginator
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from rest_framework.permissions import IsAuthenticated
+ 
 
 class EmployeeId(APIView):
+    # permission_classes = [IsAuthenticated]
+    # @method_decorator(login_required)
     def get(self, request):
         employees = Employee.objects.all()
         employee_serializer = EmployeeSerializer(employees, many=True)
@@ -96,25 +102,63 @@ class Login(APIView):
     def post(self, request, format=None):
         email = request.data.get('email')
         password = request.data.get('password')
+        
         # Attempt authentication for Default User
         default_user = User.objects.filter(email=email).first()
         if default_user and default_user.check_password(password):
             token = AccessToken.for_user(default_user)
             return JsonResponse({'token': str(token), 'emp_id': default_user.id, 'is_manager': False, 'manager_Id': None, 'message': 'Welcome to Beehyv admin' , 'superuser': True})
-        user = authenticate(request, email=email , password=password)
+        
         # Attempt authentication for Employee
+        user = authenticate(request, email=email , password=password)
         if user is not None:
             is_manager = isinstance(user, ProjManager)
             manager_ki_id = None
             if is_manager:
                 manager_ki_id = user.id
-#jwt token generating using from rest_framework_simplejwt.tokens import AccessToken
+
             token = AccessToken.for_user(user)
-       
+            first_login = user.first_login
+            
+            # Check if it's the first login
+            if first_login:
+                # Return a response indicating that the user needs to change their password, but still return a token
+                return JsonResponse({'token': str(token),'first_login': True, 'message': 'First login, please change your password'}, status=200)
 
             return JsonResponse({'token': str(token), 'emp_id': user.id, 'is_manager': is_manager, 'manager_Id': manager_ki_id , 'message' : 'Welcome to Beehyv' })
+        
         else:
             return JsonResponse({'error': 'Wrong credentials'}, status=400)
     
-    
-    
+from django.contrib.auth.hashers import check_password
+class ChangePassword(APIView):
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        employee = Employee.objects.filter(email=email).first()
+        manager = ProjManager.objects.filter(email=email).first()
+
+        if not employee and not manager:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Custom password validation for Employee
+        if employee and not check_password(old_password, employee.password):
+            return Response({'error': 'Incorrect old password'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Custom password validation for Manager
+        if manager and not check_password(old_password, manager.password):
+            return Response({'error': 'Incorrect old password'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set new password and save
+        if employee:
+            user = employee
+        else:
+            user = manager
+
+        user.password = make_password(new_password)
+        user.first_login = False  # Update the first_login flag
+        user.save()
+
+        return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)

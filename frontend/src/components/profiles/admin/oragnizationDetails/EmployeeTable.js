@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button, Table } from 'react-bootstrap';
 import EditEmployeeModal from './EditEmployeeModal';
+import EmployeeDetailsModal from './EmployeeDetailsModal';
 
 const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -24,17 +26,19 @@ const EmployeeTable = () => {
   }, []);
 
   const handleViewMore = (employee) => {
-    // Implement view more functionality
-    console.log('View more employee:', employee);
+    setSelectedEmployee(employee);
+    setShowDetailsModal(true);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
+  const handleCloseModals = () => {
+    setShowEditModal(false);
+    setShowDetailsModal(false);
+    setSelectedEmployee(null);
   };
 
   const handleEdit = (employee) => {
     setSelectedEmployee(employee);
-    setShowModal(true);
+    setShowEditModal(true);
   };
 
   const handleUpdateEmployee = async (updatedEmployeeData) => {
@@ -56,7 +60,7 @@ const EmployeeTable = () => {
     } catch (error) {
       console.error('Error updating employee:', error);
     }
-    handleCloseModal();
+    handleCloseModals();
   };
 
   const filteredEmployees = employees.filter(employee =>
@@ -70,7 +74,7 @@ const EmployeeTable = () => {
         placeholder="Search by name..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ marginBottom: '10px' , position:'absolute' , top:'15%' , right:'3%' , padding:'10px' , borderRadius:'10px' , outline:'none' }}
+        style={{ marginBottom: '10px', position: 'absolute', top: '15%', right: '3%', padding: '10px', borderRadius: '10px', outline: 'none' }}
       />
 
       <Table striped bordered hover style={{ maxWidth: '600px', border: '1px solid #dee2e6', borderRadius: '5px', marginLeft: '30%' }}>
@@ -105,10 +109,15 @@ const EmployeeTable = () => {
         </tbody>
       </Table>
       <EditEmployeeModal
-        show={showModal}
-        handleClose={handleCloseModal}
+        show={showEditModal}
+        handleClose={handleCloseModals}
         employee={selectedEmployee}
         handleUpdateEmployee={handleUpdateEmployee}
+      />
+      <EmployeeDetailsModal
+        show={showDetailsModal}
+        handleClose={handleCloseModals}
+        employee={selectedEmployee}
       />
     </>
   );

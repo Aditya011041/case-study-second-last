@@ -1,25 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import backgroundImage from '../../assets/pictures/bg.jpg';
 
-export default function Login() {
+export default function Login({ onLogin }) {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState(''); // Added state for password
+    const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email || !password) { // Check for both email and password
+        if (!email || !password) {
             alert('Please fill in all fields.');
             return;
         }
-        const passwordString = password.toString();
 
         try {
             const response = await axios.post('http://127.0.0.1:8000/login', {
                 email,
-                password, 
+                password,
             }, {
                 headers: {
                     'Content-Type': 'application/json'
@@ -27,30 +26,41 @@ export default function Login() {
             });
 
             const { emp_id, is_manager, manager_Id, token, superuser, message } = response.data;
-            console.log(superuser)
             sessionStorage.setItem('token', token);
+
             if (superuser) {
                 alert('You are logged in as an admin.');
-                navigate('/admin', { state: { emp_id, token  , superuser} });
-                sessionStorage.setItem('isLoggedIn', 'true');
-                sessionStorage.setItem('superuser', 'true');
-            } else if (is_manager) {
+                sessionStorage.setItem('admin bhai' , true);
+                navigate('/admin', { state: { emp_id, token, superuser } });
+            } 
+            else if (is_manager) {
                 alert(message);
                 navigate('/manager-dashboard', { state: { manager_Id, token } });
-                sessionStorage.setItem('isLoggedIn', 'true');
             } else {
                 alert(message);
                 navigate('/detail', { state: { emp_id, token } });
-                sessionStorage.setItem('isLoggedIn', 'true');
             }
+            if (response.data.first_login) {
+                navigate('/new-password');
+            }
+            
+            sessionStorage.setItem('isLoggedIn', 'true');
+
         } catch (error) {
             alert(error.response.data.error)
             console.error('Error:', error.message);
         }
     };
+
     const handleRegister = () => {
         navigate('/register');
     }
+    // useEffect(() =>{
+    //     const admin = sessionStorage.getItem('admin bhai');
+    //     if (admin) {
+    //         navigate('/projects');
+    //     }
+    // })
 
     return (
         <section className="vh-100" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover' }}>
@@ -110,7 +120,6 @@ export default function Login() {
                                                     Sign Up
                                                 </button>
                                             </div>
-
                                         </form>
                                     </div>
                                 </div>

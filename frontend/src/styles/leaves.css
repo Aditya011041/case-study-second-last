@@ -57,7 +57,7 @@ tbody td {
   padding: 2px;
   border-collapse: collapse;
   width: 77%; /* Maintaining the width as 50% */
-  margin-left: 8%; /* Maintaining the position */
+  margin-left: 4%; /* Maintaining the position */
 }
 
 .leave-applications-table th, .leave-applications-table td {

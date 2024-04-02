@@ -18,6 +18,8 @@ const ManagerLeaveApplicationForm = ({ managerId }) => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/leaveTypeDetail/');
                 setLeaveTypes(response.data);
+                console.log('leave', response.data)
+                console.log(leaveTypes.id)
             } catch (error) {
                 console.error('Error fetching leave types:', error);
             }
@@ -37,7 +39,10 @@ const ManagerLeaveApplicationForm = ({ managerId }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`http://127.0.0.1:8000/manager-leave-create/${managerId}/`, formData);
+          console.log('real', formData)
+          const formDataCopy = { ...formData, leave_type: parseInt(formData.leave_type) };
+          console.log('copy', formDataCopy)
+            const response = await axios.post(`http://127.0.0.1:8000/manager-leave-create/${managerId}/`, formDataCopy);
             console.log('Leave application submitted successfully:', response.data);
             // Handle successful submission
         } catch (error) {

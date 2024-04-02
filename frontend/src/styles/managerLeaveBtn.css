@@ -3,14 +3,16 @@
     display:inline-block;
     margin:20px;
     top: 30%;
-    right: 2%
+    right: 2%;
+    width: 12%;
   }
   .click2{
     position:absolute;
     display:inline-block;
     margin:20px;
     top: 40%;
-    right: 2%
+    right: 2%;
+    width: 12%;
 
   }
   .click3{
@@ -19,6 +21,15 @@
     margin:20px;
     top: 50%;
     right: 2%
+
+  }
+  .click4{
+    position:absolute;
+    display:inline-block;
+    margin:20px;
+    top: 60%;
+    right: 2%;
+    width: 12%;
 
   }
   
@@ -101,11 +112,11 @@
   
   .click2 a:active{
     top:10px;
-    background-color:#F78900;
+    background-color:#00f729;
     
-    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #915100;
-    -moz-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3pxpx 0 #915100;
-    box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #915100;
+    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #00911d;
+    -moz-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3pxpx 0 #009135;
+    box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #00911f;
   }
   
   .click2:after{
@@ -151,11 +162,11 @@
   
   .click3 a:active{
     top:10px;
-    background-color:#F78900;
+    background-color:#00b9f7;
     
-    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #915100;
-    -moz-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3pxpx 0 #915100;
-    box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #915100;
+    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #006d91;
+    -moz-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3pxpx 0 #007691;
+    box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #008091;
   }
   
   .click3:after{
@@ -168,6 +179,57 @@
     left:-4px;
     z-index:-1;
     background-color:#2B1800;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+  }
+
+
+  .click4 a{
+    color:white;
+    font-family:Helvetica, sans-serif;
+    font-weight:bold;
+    font-size:15px;
+    text-align: center;
+    text-decoration:none;
+    background-color:#ff2b6e;
+    display:block;
+    position:relative;
+    padding:14px 20px;
+    cursor: pointer;
+    
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    text-shadow: 0px 1px 0px #000;
+    filter: dropshadow(color=#000, offx=0px, offy=1px);
+    
+    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, 0 10px 0 #91003a;
+    -moz-box-shadow:inset 0 1px 0 #FFE5C4, 0 10px 0 #910035;
+    box-shadow:inset 0 1px 0 #FFE5C4, 0 10px 0 #910033;
+    
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+  }
+  
+  .click4 a:active{
+    top:10px;
+    background-color:#f70056;
+    
+    -webkit-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #910044;
+    -moz-box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3pxpx 0 #910046;
+    box-shadow:inset 0 1px 0 #FFE5C4, inset 0 -3px 0 #910049;
+  }
+  
+  .click4:after{
+    content:"";
+    height:100%;
+    width:100%;
+    padding:4px;
+    position: absolute;
+    bottom:-15px;
+    left:-4px;
+    z-index:-1;
+    background-color:#2b0012;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;

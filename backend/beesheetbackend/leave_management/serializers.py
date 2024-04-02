@@ -53,7 +53,7 @@ class LeaveApplicationSerializer(serializers.ModelSerializer):
 class ManagerLeaveApplicationSerializer(serializers.ModelSerializer):
     manager_name = serializers.SerializerMethodField()
     manager_email = serializers.SerializerMethodField()
-    leave_type = serializers.SerializerMethodField()
+    leave_type_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ManagerLeaveApplication
@@ -64,9 +64,15 @@ class ManagerLeaveApplicationSerializer(serializers.ModelSerializer):
     
     def get_manager_email(self, obj):
         return obj.manager.email if obj.manager else None
-    
-    def get_leave_type(self, obj):
+
+    def get_leave_type_name(self, obj):
         return obj.leave_type.name if obj.leave_type else None
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['leave_type'] = instance.leave_type.id if instance.leave_type else None
+        return representation
+
         
     # def get_manager_name(self, obj):
     #     return obj.manager.name if obj.manager else None

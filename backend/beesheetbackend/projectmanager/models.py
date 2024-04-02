@@ -10,6 +10,7 @@ class ProjManager(models.Model):
     email = models.EmailField(max_length=60, null=False)
     employees = models.ManyToManyField(Employee ,related_name='employees' , blank=True)
     password = models.CharField(max_length=128 , null=False)
+    first_login = models.BooleanField(default=True)
    
     # def save(self, *args, **kwargs):
     #     # Hash the password before saving

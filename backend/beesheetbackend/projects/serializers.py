@@ -10,7 +10,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     assigned_to = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), many=True)
     assigned_to_names = serializers.SerializerMethodField()  # Custom method field for names
     manager_names = serializers.SerializerMethodField() # Custom method field for names
-    
+
     class Meta:
         model = Project
         fields = '__all__'
@@ -19,4 +19,4 @@ class ProjectSerializer(serializers.ModelSerializer):
         return [employee.name for employee in obj.assigned_to.all()]
     
     def get_manager_names(self, obj):
-        return [employee.name for employee in obj.managers.all()]
+        return [manager.name for manager in obj.managers.all()]

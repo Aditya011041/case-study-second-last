@@ -28,58 +28,60 @@ const LeaveApplicationList = ({ managerId }) => {
 
   const handleManagerAction = async (action, leaveAppId) => {
     try {
+      // Make a PATCH request to update the leave application with the manager's action
       const res = await axios.patch(`http://127.0.0.1:8000/leaveapplicationlist/manager/${managerId}/${leaveAppId}/`, {
-      action: action,
-      is_ui_decision: true,
-    });
-    console.log(res.data);
-
-    const updatedLeaveApplication = res.data.leave_application;
-    const managerName = res.data.manager_name;
-
-    setLeaveApplications(prevLeaveApplications => {
-      return prevLeaveApplications.map(leaveApp => {
-        if (leaveApp.id === updatedLeaveApplication.id) {
-          return {
-            ...leaveApp,
-            ...updatedLeaveApplication,
-            manager_decision: managerDecision,
-            manager_name: managerName,
-          };
-        }
-        return leaveApp;
+        action: action,
+        is_ui_decision: true,
       });
-    });
-
-      const managerDecision = res.data.manager_decision;
-
-      console.log('Manager decision:', managerDecision);
-
-      if (managerDecision && managerDecision.manager_id && managerDecision.decision) {
-        console.log('Manager ID:', managerDecision.manager_id);
-        console.log('Decision:', managerDecision.decision);
-      } else {
-        console.error('Invalid manager decision:', managerDecision);
-      }
-
-      if (updatedLeaveApplication.status === 'REJECTED') {
-        alert('Leave application already rejected by another manager. Further changes denied.');
-      }
-      // if (action === 'reject' || action === 'approve' || action === 'leave_pending') {
-      //   alert('Leave application already rejected by another manager. Further changes denied.');
-      // }
+  
+      // Extract relevant data from the response
+      const { manager_decision, leave_application: updatedLeaveApplication } = res.data;
+      console.log('updated', updatedLeaveApplication);
+  
+      // Update the UI with the updated leave application data
+      setLeaveApplications(prevLeaveApplications => {
+        return prevLeaveApplications.map(leaveApp => {
+          if (leaveApp.id === updatedLeaveApplication.id) {
+            return {
+              ...leaveApp,
+              ...updatedLeaveApplication,
+              manager_decision: manager_decision,
+            };
+          }
+          return leaveApp;
+        });
+      });
+  
+      // Send a notification to the employee about the manager's action
+      await sendNotificationToEmployee(leaveAppId, managerId, action ,`Manager ${managerId} ${action} your leave application.`);
+  
+      // Alert the user about the success of the manager's action
+      alert(`Leave application ${action} successfully.`);
+  
     } catch (error) {
-      console.log(error)
-      if (error.response.status === 404 && error.response.data.superuser_changed_status) {
-        alert('Status changed by admin. Further changes denied.');
-      } else if (error.response.status === 400 && error.response.data.error === 'Leave application already rejected. Further changes denied.') {
-        alert('Leave application already rejected by another manager. Further changes denied.');
-      } else {
-        alert(error.response.data.error);
-      }
+      // Handle errors
+      console.error('Error:', error);
+      alert('An error occurred while processing your request.');
     }
   };
-
+  
+  const sendNotificationToEmployee = async (leaveApplicationId, managerId,action, message) => {
+    try {
+      // Make a POST request to send a notification to the employee
+      await axios.post('http://127.0.0.1:8000/leave-action-notification/', {
+        leave_application_id: leaveApplicationId,
+        manager_id: managerId,
+        message: message,
+        action: action,
+      });
+    } catch (error) {
+      // Handle errors
+      console.error('Error sending notification to employee:', error);
+      alert('An error occurred while sending a notification to the employee.');
+    }
+  };
+  
+ 
   
   const getStatusLabel = (leaveApp) => {
 
@@ -190,6 +192,10 @@ const LeaveApplicationList = ({ managerId }) => {
             <div className="modal-body leave-application-modal-body">
               <p>Name: {selectedLeaveApplication?.employee_name}</p>
               <p>Email: {selectedLeaveApplication?.employee_email}</p>
+              <p>Leave Type: {selectedLeaveApplication?.leave_type_name}</p>
+              <p>Start Date: {selectedLeaveApplication?.start_date}</p> 
+              <p>End Date: {selectedLeaveApplication?.end_date}</p>
+              <p>Reason: {selectedLeaveApplication?.reason  }</p>
             </div>
           </div>
         </div>

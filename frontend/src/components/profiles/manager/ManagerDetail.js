@@ -51,11 +51,13 @@ export default function ManagerDetail() {
     const getNotifications = async () => {
       const response = await axios.get(`http://127.0.0.1:8000/manager-notifications/${manager_Id}`);
       setNotifications(response.data);
+      console.log('notifications:' , notifications);
     };
 
     const getLeaveApplications = async () => {
       const response = await axios.get(`http://127.0.0.1:8000/leaveapplicationlist/manager/${manager_Id}`);
       setLeaveApplication(response.data);
+      console.log(response.data);
     };
 
     getNotifications();
@@ -96,15 +98,16 @@ export default function ManagerDetail() {
   const handleCloseNotify = async (managerId) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/manager-read-all/${managerId}`);
+      setNotifications([])
     } catch (error) {
       console.error('Error deleting notifications:', error);
     }
     if (!readStatus) {
       setBellClicked(false);
     }
-    if (notifications.length !== 0) {
-      window.location.reload();
-    }
+    // if (notifications.length !== 0) {
+    //   window.location.reload();
+    // }
   };
 
   const handleMenuClick = (menuItem) => {

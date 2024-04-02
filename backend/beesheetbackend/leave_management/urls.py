@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from . views import CancelLeaveApplication, LeaveApplicationAll, LeaveApplicationList, LeaveSummaryDetail , LeaveTypeDetail, ManagerLeave, ManagerLeaveApplicationCreate, ManagerLeaveApplicationList, SuperuserManagerLeave, SuperuserStatusChangeView ,  ViewDetails , EmployeeApplicationList,LeaveSummaryData
+from . views import CancelLeaveApplication, LeaveApplicationAll, LeaveApplicationList, LeaveSummaryDetail , LeaveTypeDetail, ManagerLeave, ManagerLeaveApplicationCreate, ManagerLeaveApplicationList, ManagerLeaveSummaryData, SuperuserManagerLeave, SuperuserStatusChangeView ,  ViewDetails , EmployeeApplicationList,LeaveSummaryData
 
 urlpatterns = [
     path('leaveapplicationlist/' , LeaveApplicationList.as_view()),
@@ -20,5 +20,6 @@ urlpatterns = [
     path('manager-leave-all/', ManagerLeaveApplicationCreate.as_view()),
     path('manager-leave/<int:leave_app_id>/', SuperuserManagerLeave.as_view()),
     path('manager-leave-applications/<int:manager_Id>/', ManagerLeave.as_view()),
+    path('manager_leave_summary/<int:manager_id>/', ManagerLeaveSummaryData.as_view(), name='manager_leave_summary'),
 
 ]

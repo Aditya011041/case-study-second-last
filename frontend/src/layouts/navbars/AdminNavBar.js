@@ -8,6 +8,7 @@ const CustomNavbar = () => {
   const handleLogout = () => {
     sessionStorage.removeItem('isLoggedIn');
     sessionStorage.removeItem('token');
+    sessionStorage.removeItem('admin bhai');
     navigate('/');
   };
 

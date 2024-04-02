@@ -7,4 +7,5 @@ urlpatterns = [
     path('emp/', views.EmployeeId.as_view()),
     path('employee/<int:pk>/', views.EmployeeId.as_view()),
     path('login' , views.Login.as_view()),
+    path('change-password/' , views.ChangePassword.as_view()),
 ]

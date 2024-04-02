@@ -12,6 +12,8 @@ import LeaveTypeManagement from './LeavesTypes';
 import IconMenu from './IconMenu';
 import '../../../styles/admin.css';
 import { bottom } from '@popperjs/core';
+import LeaveTypeEditModal from '../../../layouts/forms/LeaveTypeEditModal';
+import LeaveTypeCreationModal from '../../../layouts/forms/LeaveTypeCreation';
 
 function Admin() {
     const [leaveApply, setleaveApply] = useState([]);
@@ -27,6 +29,24 @@ function Admin() {
     const [isEmployeeTableOpen, setIsEmployeeTableOpen] = useState(false);
     const [isProjectTableOpen, setIsProjectTableOpen] = useState(false);
     const [isManagerTableOpen, setIsManagerTableOpen] = useState(false);
+    const [showCreateLeaveModal, setShowCreateLeaveModal] = useState(false);
+    const [showEditLeaveModal, setShowEditLeaveModal] = useState(false);
+
+    const openCreateLeaveModal = () => {
+        setShowCreateLeaveModal(true);
+    };
+
+    const closeCreateLeaveModal = () => {
+        setShowCreateLeaveModal(false);
+    };
+
+    const openEditLeaveModal = () => {
+        setShowEditLeaveModal(true);
+    };
+
+    const closeEditLeaveModal = () => {
+        setShowEditLeaveModal(false);
+    };
 
     useEffect(() => {
         if (!sessionStorage.getItem('token')) {
@@ -202,8 +222,23 @@ function Admin() {
                     <button className="btn btn-success controls-btn" onClick={handleClick}>
                         Create project
                     </button>
-                    <LeaveTypeManagement superuser={superuser} />
-                </IconMenu>
+                    {/* Dropdown for Leave Type */}
+                <Dropdown>
+                    <Dropdown.Toggle variant="secondary" id="dropdown-leavetype">
+                        Leave Type
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        {/* Option to create leave type */}
+                        <Dropdown.Item onClick={openCreateLeaveModal}>Create Leave Type</Dropdown.Item>
+                        {/* Option to edit leave type */}
+                        <Dropdown.Item onClick={openEditLeaveModal}>Edit Leave Type</Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+            </IconMenu>
+
+            {/* Modals for creating and editing leave type */}
+            <LeaveTypeCreationModal showModal={showCreateLeaveModal} onClose={closeCreateLeaveModal} />
+            <LeaveTypeEditModal showModal={showEditLeaveModal} onClose={closeEditLeaveModal} />
 
                 {/* Conditional rendering of tables based on selected option */}
                 {selectedOption === 'employee' && isTableOpen && (

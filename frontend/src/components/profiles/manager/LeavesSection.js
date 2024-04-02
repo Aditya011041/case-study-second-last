@@ -1,35 +1,59 @@
 import React, { useEffect, useState } from 'react';
-import { ListGroup } from 'react-bootstrap';
+import { ListGroup, Card } from 'react-bootstrap';
 import LeaveApplicationList from './LeaveApplicationList';
 import { useNavigate } from 'react-router-dom';
 import ManagerLeaveApplicationForm from '../../../layouts/forms/ManagerLeaveApplicationForm';
 import axios from 'axios';
 import ManagerLeaveTable from './ManagerLeaveTable';
 import '../../../styles/managerLeaveBtn.css';
+import '../../../styles/manager-leaves-count.css';
+
 
 const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleCloseNotify, manager_Id }) => {
-
   const [showForm, setShowForm] = useState(false);
   const [showManagerTable, setShowManagerTable] = useState(false);
   const [showLeaveApplicationList, setShowLeaveApplicationList] = useState(false);
   const [leaveApplications, setLeaveApplications] = useState([]);
+  const [showLeaveCounts, setShowLeaveCounts] = useState(false);
+  const [leaveCounts, setLeaveCounts] = useState(null);
 
   const handleFormToggle = () => {
     setShowForm(!showForm);
     if (showManagerTable) setShowManagerTable(false);
     if (showLeaveApplicationList) setShowLeaveApplicationList(false);
+    if (showLeaveCounts) setShowLeaveCounts(false);
   };
 
   const handleManagerTableToggle = () => {
     setShowManagerTable(!showManagerTable);
     if (showForm) setShowForm(false);
     if (showLeaveApplicationList) setShowLeaveApplicationList(false);
+    if (showLeaveCounts) setShowLeaveCounts(false);
   };
 
   const handleLeaveApplicationListToggle = () => {
     setShowLeaveApplicationList(!showLeaveApplicationList);
     if (showForm) setShowForm(false);
     if (showManagerTable) setShowManagerTable(false);
+    if (showLeaveCounts) setShowLeaveCounts(false);
+  };
+
+  const handleLeaveCountsToggle = async () => {
+    setShowLeaveCounts(!showLeaveCounts);
+    if (showForm) setShowForm(false);
+    if (showManagerTable) setShowManagerTable(false);
+    if (showLeaveApplicationList) setShowLeaveApplicationList(false);
+
+    // Fetch leave counts if toggled to show
+    if (!showLeaveCounts) {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/manager_leave_summary/${manager_Id}/`);
+        setLeaveCounts(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error('Error fetching manager leave counts:', error);
+      }
+    }
   };
 
   useEffect(() => {
@@ -63,13 +87,15 @@ const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleClos
           <i className="fas fa-chevron-down bg-primary "></i>
         </div>
         <ul className={`dropdown-menu ${bellClicked ? 'show' : ''} gradient-custom5 p-2`} aria-labelledby="navbarDropdownMenuLink" style={{ marginTop: '20rem', marginRight: '3rem' }}>
-          {notifications && bellClicked && notifications.map((notification) => (
-            <ListGroup className='p-2'>
-              <ListGroup.Item key={notification.id} style={{ backgroundColor: '#adf9be' }}>
-                <div className="dropdown-item text-muted fw-bold">{notification.message}</div>
-              </ListGroup.Item>
-            </ListGroup>
-          ))}
+          <div className="notification-container" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            {notifications && bellClicked && notifications.map((notification) => (
+              <ListGroup className='p-2'>
+                <ListGroup.Item key={notification.id} style={{ backgroundColor: '#adf9be' }}>
+                  <div className="dropdown-item text-muted fw-bold">{notification.message}</div>
+                </ListGroup.Item>
+              </ListGroup>
+            ))}
+          </div>
 
           {notifications && bellClicked && (
             <li>
@@ -108,6 +134,27 @@ const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleClos
 
       {/* Manager Leave Table */}
       {showManagerTable && <ManagerLeaveTable leaveApplications={leaveApplications} />}
+
+      {/* Button to Toggle Leave Counts */}
+      <div className='click4'>
+        <a onClick={handleLeaveCountsToggle}>{showLeaveCounts ? 'Hide' : 'Leave Counts'}</a>
+      </div>
+
+      {/* Leave Counts */}
+      {showLeaveCounts && (
+        <div className="manager-leaves-container">
+          {leaveCounts && Object.keys(leaveCounts.leave_types).map((key) => (
+            <Card key={key} className="leave-counts-card">
+              <Card.Body>
+                <Card.Title>{leaveCounts.leave_types[key].name}</Card.Title>
+                <Card.Text>Total Available: {leaveCounts.leave_types[key].total_available}</Card.Text>
+                <Card.Text>Total Used: {leaveCounts.leave_types[key].total_used}</Card.Text>
+              </Card.Body>
+            </Card>
+          ))}
+
+        </div>
+      )}
     </>
   );
 }

@@ -24,7 +24,7 @@ function LeaveTable({ leaveData, handleAction, handleViewDetails, leaveType }) {
               <td style={{ borderLeft: '2px solid #7312b4', borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveType === 'employee' ? leaveApp.employee_name : leaveApp.manager_name}</td>
               <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveApp.start_date}</td>
               <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveApp.end_date}</td>
-              <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveType === 'employee' ? leaveApp.leave_type_name : leaveApp.leave_type}</td>
+              <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>{leaveType === 'employee' ? leaveApp.leave_type_name : leaveApp.leave_type_name}</td>
               <td style={{ borderRight: '2px solid #7312b4', borderBottom: '2px solid #7312b4', padding: '8px' }}>
                 <Dropdown>
                   <Dropdown.Toggle variant="secondary" id={`dropdownMenuButton${leaveApp.id}`}>

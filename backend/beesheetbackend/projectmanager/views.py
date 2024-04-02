@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
+from employees.customAuth import EmailOrUsernameModelBackend
 from projects.serializers import ProjectSerializer
 from projectmanager.models import ProjManager
 from projects.models import Project
@@ -8,8 +9,12 @@ from rest_framework.response import Response
 from employees.models import Employee
 from employees.serializers import EmployeeSerializer
 from rest_framework.pagination import PageNumberPagination
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from rest_framework.permissions import IsAuthenticated
 
 class ManagerView(APIView):
+    
     def get(self, request,  format=None):
         managers = ProjManager.objects.all()
         serializer  = ProjManagerSerializer(managers , many=True)

@@ -13,19 +13,21 @@ const LeaveApplicationDetailsModal = ({ showModal, selectedApplication, handleCl
   };
 
   const getStatus = (application) => {
-    // if (application.status === 'APPROVED') {
-    //   return 'Approved';
-    // } 
-     if (application.manager_statuses.some(manager => manager.action === 'APPROVE')) {
+    if (application.superuser_changed_status) {
+      return application.status;
+    } else if (application.manager_statuses.some(manager => manager.action === 'APPROVE')) {
       application.employee_view_status = 'Approved'; // Update employee view status
       return 'Approved';
     } else if (application.employee_view_status === 'REJECTED' || application.employee_view_status === 'CANCELLED') {
       return application.employee_view_status;
+    } else if (application.manager_statuses.map(manager => manager.action === 'PENDING')) {
+      return 'Pending';
     } else {
       return 'Pending'; // Default status if no decision is found
     }
   };
-
+  
+  
 
 
   return (

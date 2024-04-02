@@ -2,6 +2,7 @@ from django.db import models
 from employees.models import Employee
 from projectmanager.models import ProjManager
 from datetime import datetime, timedelta , date
+from django.dispatch import receiver
 
 #model for types of leaves : --------------------------------
 class LeaveType(models.Model):
@@ -64,8 +65,6 @@ class LeaveSummary(models.Model):
     total_available = models.PositiveIntegerField(default=0)
     total_used = models.PositiveIntegerField(default=0)
     leave_type = models.ForeignKey(LeaveType  , on_delete = models.CASCADE , null=True)
-
-    
 
 
 

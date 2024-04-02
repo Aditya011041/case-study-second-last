@@ -1,0 +1,24 @@
+.notification-toggle {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.bell-icon {
+    margin-right: 5px; /* Adjust the margin as needed */
+    position: absolute;
+    top: 4%;
+    right: 15%;
+    height: 4%;
+    cursor: pointer;
+}
+
+.badges {
+    position: absolute;
+    top: 3%; /* Adjust the position as needed */
+    right: 15%; /* Adjust the margin as needed */
+    font-size: large;
+    font-weight: bold !important;
+}
