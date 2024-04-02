@@ -26,12 +26,11 @@ class ReadAllNotifications(APIView):
         return Response(serializer.data )
     def delete(self, request, manager_id, format=None):
         try:
-            # Get all notifications for the given manager ID
             notifications = LeaveNotification.objects.filter(recipient=manager_id)
             notifications.delete()
-            return Response(status='deleted successfully')
+            return Response({'message': 'Notifications deleted successfully'})
         except Exception as e:
-            return Response( status='something went wrong')
+            return Response({'error': 'Something went wrong'}, status=500)
 
 import traceback
 import logging

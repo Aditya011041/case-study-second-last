@@ -61,13 +61,15 @@ const LeavesSection = ({ bellClicked, notifications, handleBellClick, handleClos
       try {
         const response = await axios.get(`http://127.0.0.1:8000/manager-leave-applications/${manager_Id}/`);
         setLeaveApplications(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       } catch (error) {
         console.error('Error fetching leave applications:', error);
       }
     };
     fetchLeaveApplications();
   }, [manager_Id]);
+
+   
 
   return (
     <>

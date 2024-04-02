@@ -69,10 +69,19 @@ class LeaveSummary(models.Model):
 
 
 class ManagerLeaveAction(models.Model):
-    manager = models.ForeignKey(ProjManager, on_delete=models.CASCADE)
+    manager = models.ManyToManyField(ProjManager)
     leave_application = models.ForeignKey(LeaveApplication, on_delete=models.CASCADE)
     action = models.CharField(max_length=20)  # Action taken by the manager (e.g., 'APPROVE', 'REJECT', 'PENDING')
     timestamp = models.DateTimeField(default=datetime.now)  # Timestamp when the action was taken
 
     def __str__(self):
         return f"{self.manager.name} - {self.leave_application.employee.name} - {self.leave_application.leave_type.name}"
+
+class ManagerLeaveSummary(models.Model):
+    manager = models.ForeignKey(ProjManager, on_delete=models.CASCADE)
+    leave_type = models.ManyToManyField(LeaveType)
+    total_available = models.PositiveIntegerField(default=0)
+    total_used = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.manager.name} - Leave Summary"

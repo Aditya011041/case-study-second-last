@@ -3,7 +3,7 @@ from employees.serializers import EmployeeSerializer
 from employees.models import Employee
 from projectmanager.models import ProjManager
 from leave_management.serializers import LeaveApplicationSerializer, LeaveSummarySerializer , LeaveTypeSerializer, ManagerLeaveApplicationSerializer
-from leave_management.models import LeaveApplication, LeaveSummary , LeaveType, ManagerLeaveAction, ManagerLeaveApplication
+from leave_management.models import LeaveApplication, LeaveSummary , LeaveType, ManagerLeaveAction, ManagerLeaveApplication, ManagerLeaveSummary
 from rest_framework.response import Response
 from django.http import Http404
 from django.contrib.auth.models import User
@@ -232,7 +232,7 @@ def calculate_leave_days(start_date, end_date, status):
         return 0
     total_days = (end_date - start_date).days + 1
     # Exclude Saturdays and Sundays
-    leave_days = sum(1 for day in range(total_days) if (datetime(start_date.year, start_date.month, start_date.day) + timedelta(days=day)).weekday() < 5)
+    leave_days = sum(1 for day in range(total_days) if (datetime.datetime(start_date.year, start_date.month, start_date.day) + timedelta(days=day)).weekday() < 5)
     print(f"Total used days calculated: {leave_days}")
     return leave_days
 
@@ -452,25 +452,23 @@ class SuperuserManagerLeave(APIView):
         if leave_application.end_date < datetime.date.today():
             return Response({'error': 'End date of leave application has passed. Status cannot be changed.'}, status=400)
         
-        
-        
         if action in ['approve', 'reject', 'pending']:
             leave_application.status = None
 
         if action == 'approve':
             leave_application.status = 'APPROVED'
+            # Call the update_manager_leave_report function when leave application is approved
+            update_manager_leave_report(sender=None, instance=leave_application, created=False)
         elif action == 'reject':
             leave_application.status = 'REJECTED'            
         elif action == 'pending':
             leave_application.status = 'PENDING'
-            
         
-
         leave_application.save()
 
         serializer = ManagerLeaveApplicationSerializer(leave_application)
         return Response(serializer.data)
-    
+
 class ManagerLeave(APIView):
     def get(self, request, manager_Id, format=None):
         leave_applications = ManagerLeaveApplication.objects.filter(manager_id=manager_Id)
@@ -478,47 +476,92 @@ class ManagerLeave(APIView):
         return Response(serializer.data)
     
     
+from django.db.models import Sum
+
 class ManagerLeaveSummaryData(APIView):
     def get(self, request, manager_id):
         try:
             manager = ProjManager.objects.get(pk=manager_id)
-            manager_projects = manager.projects.all()
-            employees_in_manager_projects = Employee.objects.filter(project__in=manager_projects)
-            
             leave_types = LeaveType.objects.all()
             leave_type_data = {}
-            total_leave_count = 0
 
             for leave_type in leave_types:
-                leave_type_data[leave_type.id] = {
-                    'name': leave_type.name,
-                    'days_allocated': leave_type.days_allocated,
-                    'total_available': leave_type.days_allocated,  # Initialize total available days with allocated days
-                    'total_used': 0
-                }
-
-            for employee in employees_in_manager_projects:
-                leave_applications = LeaveApplication.objects.filter(employee=employee)
-                for leave_application in leave_applications:
-                    leave_type = leave_application.leave_type
-                    total_used = self.calculate_leave_days(leave_application.start_date, leave_application.end_date)
-                    leave_type_data[leave_type.id]['total_used'] += total_used
-                    total_leave_count += total_used
-
-                    # Subtract approved leave days from total available days
-                    leave_type_data[leave_type.id]['total_available'] -= total_used
+                summary_qs = ManagerLeaveSummary.objects.filter(manager=manager, leave_type=leave_type)
+                if summary_qs.exists():
+                    summary = summary_qs.first()
+                    leave_type_data[leave_type.id] = {
+                        'name': leave_type.name,
+                        'days_allocated': leave_type.days_allocated,
+                        'total_available': summary.total_available,
+                        'total_used': summary.total_used
+                    }
+                else:
+                    leave_type_data[leave_type.id] = {
+                        'name': leave_type.name,
+                        'days_allocated': leave_type.days_allocated,
+                        'total_available': leave_type.days_allocated,
+                        'total_used': 0
+                    }
 
             response_data = {
-                'leave_types': leave_type_data,
-                'total_leave_count': total_leave_count
+                'leave_types': leave_type_data
             }
 
             return Response(response_data)
         except ProjManager.DoesNotExist:
             return Response({'error': 'Manager not found'})
 
-    def calculate_leave_days(self, start_date, end_date):
-        total_days = (end_date - start_date).days + 1
-        # Exclude Saturdays and Sundays
-        leave_days = sum(1 for day in range(total_days) if (start_date + timedelta(days=day)).weekday() < 5)
-        return leave_days
+
+
+@receiver(post_save, sender=ManagerLeaveApplication)
+def update_manager_leave_report(sender, instance, **kwargs):
+    manager = instance.manager
+    leave_type = instance.leave_type
+
+    # Get or create the leave report for the manager
+    leave_report, created = ManagerLeaveSummary.objects.get_or_create(
+        manager=manager,
+        defaults={
+            'total_available': 0,
+            'total_used': 0,
+        }
+    )
+
+    # Add the leave type to the leave report
+    leave_report.leave_type.set([leave_type])
+
+    if created:
+        # Set the initial values for a new leave report
+        leave_report.total_available = leave_type.days_allocated
+        leave_report.total_used = 0
+        leave_report.save()
+
+    if instance.status == 'APPROVED':
+        # Calculate the number of days taken
+        total_used_days = calculate_leave_days(instance.start_date, instance.end_date)
+        print( 'total_used_days:' ,  total_used_days)
+
+        # Update total used and available days
+        leave_report.total_used = total_used_days
+        leave_report.total_available = leave_type.days_allocated - leave_report.total_used
+        leave_report.save()
+
+    elif instance.status == 'REJECTED':
+        # Revert the total used days if the application was previously approved
+        if not created:
+            total_used_days = calculate_leave_days(instance.start_date, instance.end_date)
+            leave_report.total_used -= total_used_days
+            leave_report.total_available = leave_type.days_allocated - leave_report.total_used
+            leave_report.save()
+    elif instance.status == 'PENDING':
+        pass
+
+
+def calculate_leave_days(start_date, end_date):
+    total_days = (end_date - start_date).days + 1
+    # Exclude Saturdays and Sundays
+    leave_days = sum(1 for day in range(total_days) if (start_date + timedelta(days=day)).weekday() < 5)
+    return leave_days
+
+
+# leave_report.leave_type.set([leave_type])
